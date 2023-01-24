@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  php:
+    container_name: php_exam_generator
+    build:
+      context: ./php
+    ports:
+      - '9001:9000'
+    volumes:
+      - ./app:/var/www/exam_generator
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9000 remote_enable=1
+
+  nginx:
+    container_name: nginx_exam_generator
+    image: nginx:1.20-alpine
+    ports:
+      - '8080:80'
+    volumes:
+      - ./app:/var/www/exam_generator
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+ 
+
+
+  mysqlservice:
+    container_name: mysql_projet
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'secret'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'secret'
+      MYSQL_DATABASE: 'db_projet'
+    volumes:
+      - mysqldata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+
+  phpmyadmin:
+    container_name: phpmyadmin_supervision
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: mysqlservice
+      PMA_PORT: 3306
+
+
+  composer:
+        image: composer:2.1.14
+        command: ["composer", "install"]
+        volumes:
+            - ./app:/var/www/exam_generator
+            
+
+volumes:
+  mysqldata: {}
